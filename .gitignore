@@ -1,0 +1,28 @@
+.gradle/
+build/
+out/
+run/
+run-server/
+mcmodsrepo/
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+eclipse/
+bin/
+*.log
+hs_err_pid*
+
+# Local decompiled Minecraft reference source.
+minecraft-mob-system-map/corpus/
+
+# Graphify's generated graph, visualization, manifests, labels, and caches can
+# contain hundreds of thousands of lines. Keep them available locally without
+# sending them through Git/Codex review. Retain the compact human-readable
+# reports as project documentation.
+minecraft-mob-system-map/graphify-out/*
+!minecraft-mob-system-map/graphify-out/GRAPH_REPORT.md
+!minecraft-mob-system-map/graphify-out/GRAPH_HEALTH.txt
