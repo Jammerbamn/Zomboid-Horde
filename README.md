@@ -3,6 +3,9 @@
 A Minecraft Forge 1.12.2 starter mod that makes vanilla zombies behave more
 like Project Zomboid's shamblers.
 
+The long-term AI requirements and system boundaries are recorded in
+[`docs/AI_DESIGN_DIRECTIVE.md`](docs/AI_DESIGN_DIRECTIVE.md).
+
 ## Included behavior
 
 - Slower, configurable shambler movement

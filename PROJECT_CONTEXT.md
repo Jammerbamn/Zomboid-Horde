@@ -25,6 +25,10 @@ sound investigation, group behavior, and world-scale horde pressure.
 
 Decide how much AI should be custom versus delegated to Minecraft.
 
+The authoritative coarse requirements are recorded in
+`docs/AI_DESIGN_DIRECTIVE.md`. Read that directive before making architecture
+or implementation decisions.
+
 The leading design direction is a hybrid:
 
 - Keep Minecraft's entity lifecycle, attributes, collision handling,
@@ -62,10 +66,9 @@ history.
 
 ## Recommended opening prompt for a fresh task
 
-> Read `PROJECT_CONTEXT.md`, then help me decide and document the architecture
-> for advanced Project Zomboid-style zombie AI. Compare extending Minecraft's
-> AI with building a custom decision layer, using the existing Graphify map
-> where useful. Do not rebuild the map.
+> Read `PROJECT_CONTEXT.md` and `docs/AI_DESIGN_DIRECTIVE.md`, then help me
+> detail one of the AI systems without weakening the directive's requirements.
+> Use the existing Graphify map where useful. Do not rebuild the map.
 
 ## Remote-task note
 
