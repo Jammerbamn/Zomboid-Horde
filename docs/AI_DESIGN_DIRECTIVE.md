@@ -161,6 +161,11 @@ Required behavior:
 A logical population record is distinct from a loaded Minecraft entity. The
 record is the durable truth; loaded zombies are its active representation.
 
+The first implementation slice derives all population randomness from the
+current Minecraft world seed. It uses deterministic regional plans, saved
+horde definitions, stable population slot IDs, materialized-ID tracking, and
+death tombstones. See `SPAWNING_SYSTEM.md`.
+
 The detailed design must define region partitioning, deterministic generation,
 population records, identity granularity, materialization rules, unload
 conversion, save migration, death accounting, chunk tickets, spawn safety,

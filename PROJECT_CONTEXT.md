@@ -19,6 +19,10 @@ sound investigation, group behavior, and world-scale horde pressure.
 - Existing systems include configurable movement and detection, noise
   attraction, last-known-position pursuit, nearby horde alerting, wooden-door
   breaking, and optional daylight immunity.
+- The first spawning-system slice adds world-seeded regional hordes,
+  persistent population IDs, death tombstones, chunk materialization, and
+  configurable horde frequency, size, spread, and makeup. Its design is
+  recorded in `docs/SPAWNING_SYSTEM.md`.
 - The project built successfully before this handoff.
 
 ## Architecture question to resolve next

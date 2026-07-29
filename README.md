@@ -13,8 +13,11 @@ The long-term AI requirements and system boundaries are recorded in
 - Attraction to sprinting, block breaking/placing, and combat noise
 - Pursuit of a player's last known position after line of sight is lost
 - Horde alerting when one zombie acquires a player target
+- World-seeded persistent horde generation
+- Persistent death accounting for seeded zombies
+- Configurable horde frequency, size, spread, and zombie makeup
 - Wooden-door breaking AI
-- Optional immunity to daylight burning
+- Daytime spawning and survival, enabled by default
 
 The behavior applies to `EntityZombie` and its vanilla subclasses. It does not
 replace the zombie entity, so vanilla textures, drops, spawning, and mod
@@ -55,7 +58,17 @@ Launch the game once, then edit:
 `config/zomboidzombies.cfg`
 
 The config controls movement speed, follow range, memory duration, noise
-ranges, horde alert range, door breaking, and daylight immunity.
+ranges, horde alerting, seeded population generation, horde frequency and
+size, zombie makeup, door breaking, and daylight spawning/survival.
+
+The seeded population design and current limitations are documented in
+[`docs/SPAWNING_SYSTEM.md`](docs/SPAWNING_SYSTEM.md).
+
+Server operators can inspect population state with:
+
+```text
+/zzpopulation stats
+```
 
 ## Suggested next steps
 

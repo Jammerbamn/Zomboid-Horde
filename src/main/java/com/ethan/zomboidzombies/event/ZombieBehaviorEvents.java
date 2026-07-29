@@ -39,6 +39,13 @@ public final class ZombieBehaviorEvents {
 
         setAttribute(zombie, SharedMonsterAttributes.MOVEMENT_SPEED, ModConfig.movementSpeed);
         setAttribute(zombie, SharedMonsterAttributes.FOLLOW_RANGE, ModConfig.followRange);
+        if (ModConfig.disableVanillaReinforcements) {
+            IAttributeInstance reinforcements =
+                zombie.getAttributeMap().getAttributeInstanceByName("zombie.spawnReinforcements");
+            if (reinforcements != null) {
+                reinforcements.setBaseValue(0.0D);
+            }
+        }
         zombie.setBreakDoorsAItask(ModConfig.breakWoodenDoors);
         zombie.tasks.addTask(3, new EntityAIPursueLastKnownPosition(zombie, 1.0D));
         zombie.tasks.addTask(4, new EntityAIInvestigateNoise(zombie, 1.0D));
@@ -66,7 +73,7 @@ public final class ZombieBehaviorEvents {
         }
 
         EntityZombie zombie = (EntityZombie) event.getEntityLiving();
-        if (ModConfig.preventDaylightBurning
+        if (ModConfig.allowDaylightZombies
             && zombie.world.isDaytime()
             && zombie.world.canSeeSky(zombie.getPosition())) {
             zombie.extinguish();
