@@ -13,6 +13,14 @@ if "%DIRNAME%" == "" set DIRNAME=.
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%
 
+@rem This Minecraft 1.12.2 / Gradle 4.9 workspace requires Java 8. Keep this override
+@rem local to this workspace so the system JAVA_HOME can remain on Java 21.
+if defined ZOMBOID_JAVA_HOME (
+    set JAVA_HOME=%ZOMBOID_JAVA_HOME%
+) else if exist "C:\Program Files\Eclipse Adoptium\jdk-8.0.462.8-hotspot\bin\java.exe" (
+    set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-8.0.462.8-hotspot
+)
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=
 

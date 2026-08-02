@@ -1,14 +1,22 @@
+import groovy.json.JsonSlurper
+import java.security.MessageDigest
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 buildscript {
     repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
+        maven {
+            name = 'forge'
+            url = 'https://maven.minecraftforge.net/'
+        }
         mavenCentral()
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
     }
 }
 
-apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
 
@@ -18,26 +26,114 @@ archivesBaseName = mod_id
 
 sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
 
-minecraft {
-    mappings channel: 'snapshot', version: '20171003-1.12'
+def legacyAssetsDir = new File(gradle.gradleUserHomeDir, 'caches/minecraft/assets')
 
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
+minecraft {
+    version = "${minecraft_version}-${forge_version}"
+    runDir = 'run'
+    mappings = 'snapshot_20171003'
+    clientJvmArgs = [
+        '-Dfml.coreMods.load=com.jammerbam.zomboid.core.ZomboidCorePlugin'
+    ]
+    serverJvmArgs = [
+        '-Dfml.coreMods.load=com.jammerbam.zomboid.core.ZomboidCorePlugin'
+    ]
+    clientRunArgs = [
+        '--assetsDir', legacyAssetsDir.absolutePath,
+        '--assetIndex', '1.12'
+    ]
+}
+
+task downloadLegacyAssetsHttps {
+    dependsOn 'getAssetIndex'
+    description = 'Downloads missing Minecraft 1.12 assets over HTTPS for ForgeGradle 2.3.'
+
+    doLast {
+        def indexFile = new File(legacyAssetsDir, 'indexes/1.12.json')
+        def objectsDir = new File(legacyAssetsDir, 'objects')
+        def index = new JsonSlurper().parse(indexFile)
+        def missing = index.objects.findAll { name, entry ->
+            def target = new File(objectsDir, "${entry.hash.substring(0, 2)}/${entry.hash}")
+            !target.isFile() || target.length() != entry.size
         }
 
-        server {
-            workingDirectory project.file('run-server')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
+        if (!missing.isEmpty()) {
+            logger.lifecycle("Downloading ${missing.size()} missing Minecraft 1.12 assets over HTTPS.")
+        }
+
+        missing.eachWithIndex { objectEntry, position ->
+            def asset = objectEntry.value
+            def hash = asset.hash
+            def target = new File(objectsDir, "${hash.substring(0, 2)}/${hash}")
+            def temporary = new File(target.parentFile, "${target.name}.part")
+            target.parentFile.mkdirs()
+
+            try {
+                new URL("https://resources.download.minecraft.net/${hash.substring(0, 2)}/${hash}").withInputStream { input ->
+                    temporary.withOutputStream { output ->
+                        output << input
+                    }
+                }
+
+                def digest = MessageDigest.getInstance('SHA-1')
+                temporary.withInputStream { input ->
+                    byte[] buffer = new byte[8192]
+                    int count
+                    while ((count = input.read(buffer)) != -1) {
+                        digest.update(buffer, 0, count)
+                    }
+                }
+                def downloadedHash = digest.digest().collect { String.format('%02x', it & 0xff) }.join()
+                if (temporary.length() != asset.size || downloadedHash != hash) {
+                    throw new GradleException("Downloaded asset failed validation: ${objectEntry.key}")
+                }
+
+                Files.move(
+                    temporary.toPath(),
+                    target.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+                if ((position + 1) % 100 == 0 || position + 1 == missing.size()) {
+                    logger.lifecycle("Legacy assets: ${position + 1}/${missing.size()}")
+                }
+            } finally {
+                if (temporary.exists()) {
+                    temporary.delete()
+                }
+            }
         }
     }
 }
 
+tasks.getByName('getAssets').dependsOn downloadLegacyAssetsHttps
+
+task verifyReleaseMetadata {
+    description = 'Checks that public mod identity and version metadata stay synchronized.'
+    inputs.files 'gradle.properties',
+        'src/main/java/com/jammerbam/zomboid/Zomboid.java',
+        'src/main/resources/mcmod.info'
+
+    doLast {
+        def modSource = file('src/main/java/com/jammerbam/zomboid/Zomboid.java').text
+        def sourceVersion = (modSource =~ /VERSION\s*=\s*"([^"]+)"/)
+        def sourceModId = (modSource =~ /MOD_ID\s*=\s*"([^"]+)"/)
+        if (!sourceVersion.find() || sourceVersion.group(1) != project.version.toString()) {
+            throw new GradleException('Zomboid.VERSION does not match mod_version')
+        }
+        if (!sourceModId.find() || sourceModId.group(1) != mod_id) {
+            throw new GradleException('Zomboid.MOD_ID does not match mod_id')
+        }
+
+        def metadata = new JsonSlurper().parse(file('src/main/resources/mcmod.info'))[0]
+        if (metadata.modid != mod_id || metadata.version != '${version}') {
+            throw new GradleException('mcmod.info identity or version placeholder is invalid')
+        }
+    }
+}
+
+check.dependsOn verifyReleaseMetadata
+
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     testImplementation 'junit:junit:4.13.2'
 }
 
@@ -59,13 +155,20 @@ jar {
     manifest {
         attributes([
             'Specification-Title': mod_id,
-            'Specification-Vendor': 'Ethan',
+            'Specification-Vendor': 'Jammerbam',
             'Specification-Version': '1',
             'Implementation-Title': project.name,
             'Implementation-Version': project.version,
-            'Implementation-Vendor': 'Ethan',
-            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            'Implementation-Vendor': 'Jammerbam',
+            'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            'FMLCorePlugin': 'com.jammerbam.zomboid.core.ZomboidCorePlugin',
+            'FMLCorePluginContainsFMLMod': 'true',
+            'ForceLoadAsMod': 'true'
         ])
+    }
+    from('LICENSE') {
+        into 'META-INF'
+        rename { 'LICENSE_zomboid.txt' }
     }
 }
 

@@ -1,16 +1,16 @@
 [
   {
-    "modid": "zomboidzombies",
-    "name": "Zomboid Zombies",
+    "modid": "zomboid",
+    "name": "Zomboid",
     "description": "Makes vanilla zombies behave like persistent, noise-driven shamblers.",
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "",
     "updateUrl": "",
-    "authorList": ["Ethan"],
+    "authorList": ["Jammerbam"],
     "credits": "Inspired by Project Zomboid's zombie behavior.",
     "logoFile": "",
     "screenshots": [],
-    "dependencies": ["required-after:forge@[14.23.5.2859,)"]
+    "dependencies": ["required-after:forge@[14.23.5.2847,)"]
   }
 ]

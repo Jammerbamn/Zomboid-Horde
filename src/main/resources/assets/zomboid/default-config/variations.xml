@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<variations formatVersion="1">
+    <entity id="minecraft:zombie">
+
+        <variation id="sprinter">
+            <attributes health="16" speed="0.35" damage="2.5" knockbackResistance="0.0" swimSpeed="2.0" />
+            <effects>
+                <onHit potion="minecraft:poison" durationSeconds="5" amplifier="0" chancePercent="60" />
+            </effects>
+        </variation>
+
+        <variation id="shambler">
+            <attributes health="30" speed="0.19" damage="3.0" knockbackResistance="0.5" swimSpeed="1.0" />
+            <items>
+                <mainhand chancePercent="65">
+                    <item id="minecraft:stone_sword" weight="1" dropChancePercent="0" />
+                </mainhand>
+            </items>
+        </variation>
+
+        <variation id="tunneler" blockBreakingLevel="2">
+            <attributes health="20.0" speed="0.23" damage="4.0" knockbackResistance="0.2" swimSpeed="1.0" />
+            <items>
+                <mainhand chancePercent="100.0">
+                    <item id="minecraft:wooden_shovel" weight="4" dropChancePercent="0" />
+                    <item id="minecraft:wooden_pickaxe" weight="2" dropChancePercent="0" />
+                </mainhand>
+                <head chancePercent="100.0">
+                    <item id="minecraft:golden_helmet" weight="1" dropChancePercent="2.0" />
+                </head>
+            </items>
+        </variation>
+
+        <variation id="experienced" blockBreakingLevel="1">
+            <attributes health="30" speed="0.22" damage="5" knockbackResistance="0.8" swimSpeed="1"/>
+            <items>
+                <mainhand chancePercent="100">
+                    <item id="minecraft:diamond_sword" weight="1" dropChancePercent="1"/>
+                    <item id="minecraft:iron_sword" weight="1" dropChancePercent="1"/>
+                </mainhand>
+                <head chancePercent="100">
+                    <item id="minecraft:diamond_helmet" weight="1" dropChancePercent="1"/>
+                    <item id="minecraft:iron_helmet" weight="1" dropChancePercent="1"/>
+                </head>
+                <chest chancePercent="100">
+                    <item id="minecraft:diamond_chestplate" weight="1" dropChancePercent="1"/>
+                    <item id="minecraft:iron_chestplate" weight="1" dropChancePercent="1"/>
+                </chest>
+                <legs chancePercent="100">
+                    <item id="minecraft:diamond_leggings" weight="1" dropChancePercent="1"/>
+                    <item id="minecraft:iron_leggings" weight="1" dropChancePercent="1"/>
+                </legs>
+                <feet chancePercent="100">
+                    <item id="minecraft:diamond_boots" weight="1" dropChancePercent="1"/>
+                    <item id="minecraft:iron_boots" weight="1" dropChancePercent="1"/>
+                </feet>
+            </items>
+        </variation>
+    </entity>
+
+    <entity id="zomboid:buff_zombie">
+        <variation id="tank">
+            <attributes health="80" speed="0.15" damage="10" knockbackResistance="1" swimSpeed="0.5"/>
+            <items>
+                <mainhand>
+                    <item id="minecraft:stone_sword" weight="1" dropChancePercent="0"/>
+                </mainhand>
+            </items>
+        </variation>
+
+        <variation id="jogger">
+            <attributes health="30" speed="0.27" damage="5" knockbackResistance="0.6" swimSpeed="1"/>
+            <effects>
+                <onHit potion="minecraft:poison" durationSeconds="7" amplifier="0" chancePercent="60" />
+            </effects>
+        </variation>
+    </entity>
+</variations>

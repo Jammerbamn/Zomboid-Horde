@@ -1,4 +1,4 @@
-# Zomboid Zombies - Project Context
+# Zomboid - Project Context
 
 This file is the compact handoff for continuing the project in a fresh Codex
 task without loading the large Graphify generation history.
@@ -11,34 +11,44 @@ sound investigation, group behavior, and world-scale horde pressure.
 
 ## Current workspace
 
-- Forge: 1.12.2 / 14.23.5.2859
-- Mod ID: `zomboidzombies`
+- Forge: 1.12.2 / 14.23.5.2847
+- Mod ID: `zomboid`
 - Java: 8
 - The starter implementation currently modifies vanilla `EntityZombie`
   behavior rather than registering a replacement zombie entity.
 - Existing systems include configurable movement and detection, noise
   attraction, last-known-position pursuit, nearby horde alerting, wooden-door
-  breaking, and optional daylight immunity.
-- The first spawning-system slice adds world-seeded regional hordes,
-  persistent population IDs, death tombstones, chunk materialization, and
-  configurable horde frequency, size, spread, and makeup. Its design is
-  recorded in `docs/SPAWNING_SYSTEM.md`.
+  breaking, optional daylight immunity, a per-zombie brain-state foundation,
+  state-aware horde-budgeted audio, and shared player-pursuit flow fields.
+- The spawning system uses world-seeded 32 by 32 chunk planning regions,
+  XML-defined horde types, biome selection modifiers, deterministic
+  non-overlap protection, persistent population IDs, death tombstones, and
+  chunk materialization. Its design is recorded in
+  `docs/SPAWNING_SYSTEM.md` and `docs/HORDE_DEFINITIONS.md`.
+- The Forge configuration presents common gameplay, horde, sound, and
+  population choices first. Engine tuning and diagnostics are nested under
+  the final `99_advanced` category; older category layouts migrate in place.
 - The project built successfully before this handoff.
 
-## Architecture question to resolve next
-
-Decide how much AI should be custom versus delegated to Minecraft.
+## AI architecture
 
 The authoritative coarse requirements are recorded in
 `docs/AI_DESIGN_DIRECTIVE.md`. Read that directive before making architecture
 or implementation decisions.
 
-The leading design direction is a hybrid:
+The current design is a hybrid:
 
-- Keep Minecraft's entity lifecycle, attributes, collision handling,
-  `PathNavigate`, and low-level pathfinding.
+- Keep Minecraft's entity lifecycle, attributes, collision handling, and
+  movement helpers.
+- Use one reusable block-aware reverse flow field per pursued player for the
+  common horde pursuit case. Covered zombies read adjacent waypoints instead
+  of maintaining independent vanilla paths.
+- Keep TPS-budgeted `PathNavigate` routing as a fallback for incomplete fields
+  and terrain profiles the shared solver does not yet support.
 - Add a custom decision layer for perception, memory, investigation, target
   persistence, horde communication, and state transitions.
+- Use the brain state to control player-facing zombie ambience: dense idle
+  groups are quieter, while alerted groups retain full ambient frequency.
 - Add a world-level horde director for population pressure, migration,
   spawning policy, and performance budgets.
 - Replace or suppress individual vanilla `EntityAIBase` tasks only where they
@@ -50,6 +60,10 @@ still allowing substantially more advanced behavior.
 ## Minecraft mob-system map
 
 The reference map is stored in `minecraft-mob-system-map/`.
+
+The mod's own Java architecture map is stored beside it in
+`zomboid-code-map/`. Its interactive graph, raw graph, report, and health
+diagnostic use the same `graphify-out/` layout as the vanilla reference map.
 
 - Corpus: 478 decompiled Minecraft Java files
 - Raw extraction: 9,254 nodes / 36,078 relationships

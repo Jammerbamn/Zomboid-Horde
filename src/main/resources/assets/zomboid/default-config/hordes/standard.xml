@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<horde formatVersion="2" id="zomboid:standard">
+    <population minimum="6" maximum="12" radius="8" />
+
+    <members>
+        <member entity="minecraft:zombie" weight="70">
+            <variations>
+                <variation id="zomboid:standard" weight="68" />
+                <variation id="zomboid:sprinter" weight="15" />
+                <variation id="zomboid:shambler" weight="10" />
+                <variation id="zomboid:tunneler" weight="5" />
+                <variation id="zomboid:experienced" weight="2" />
+            </variations>
+        </member>
+
+        <member entity="zomboid:buff_zombie" weight="10">
+            <variations>
+                <variation id="zomboid:standard" weight="85"/>
+                <variation id="zomboid:tank" weight="5"/>
+                <variation id="zomboid:jogger" weight="10"/>
+            </variations>
+        </member>
+    </members>
+
+    <biomeWeights>
+        <biome selector="ALL" weight="1" />
+    </biomeWeights>
+</horde>

@@ -14,7 +14,9 @@ mcmodsrepo/
 eclipse/
 bin/
 *.log
+logs/
 hs_err_pid*
+graphify-out/
 
 # Local decompiled Minecraft reference source.
 minecraft-mob-system-map/corpus/
@@ -26,3 +28,7 @@ minecraft-mob-system-map/corpus/
 minecraft-mob-system-map/graphify-out/*
 !minecraft-mob-system-map/graphify-out/GRAPH_REPORT.md
 !minecraft-mob-system-map/graphify-out/GRAPH_HEALTH.txt
+zomboid-code-map/corpus/
+zomboid-code-map/graphify-out/*
+!zomboid-code-map/graphify-out/GRAPH_REPORT.md
+!zomboid-code-map/graphify-out/GRAPH_HEALTH.txt

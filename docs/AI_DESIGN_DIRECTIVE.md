@@ -1,4 +1,4 @@
-# Zomboid Zombies - AI Design Directive
+# Zomboid - AI Design Directive
 
 Status: Coarse design baseline
 
@@ -9,7 +9,7 @@ Last updated: 2026-07-28
 ## Purpose
 
 This document records the intended player experience and architectural
-direction for Zomboid Zombies. It is the authoritative starting point for
+direction for Zomboid. It is the authoritative starting point for
 future AI design work. The requirements below are deliberate; exact
 algorithms, tuning values, save formats, and performance budgets remain to be
 specified in focused design documents.
@@ -72,6 +72,25 @@ The detailed design must choose the propagation model, acoustic material
 properties, caching strategy, update budget, event categories, uncertainty
 rules, and conflict resolution between competing sounds.
 
+The selected first implementation uses configurable simple distance attenuation or an
+incrementally budgeted weighted voxel field. Its current architecture, diagnostics, and
+remaining work are recorded in `SOUND_SIMULATION.md`.
+
+### Player-facing horde audio
+
+Gameplay sound perception and audible zombie vocalizations are separate
+systems. Dense hordes should remain intimidating without exhausting the
+client's simultaneous sound sources.
+
+- Idle and wandering zombies share a configurable horde-level ambient
+  vocalization budget.
+- Zombies that acquire or pursue a target return to full ambient frequency.
+- Alert transitions may later add controlled horde responses.
+- Attack, hurt, death, and movement sounds are not removed by ambient
+  throttling.
+- A later audio pass may aggregate distant alerted zombies into positioned
+  horde ambience while preserving individual nearby voices.
+
 ### 2. Loose alert propagation between zombies
 
 Zombies should influence nearby zombies through observable local behavior.
@@ -82,16 +101,20 @@ Required behavior:
 - A zombie that detects a player or important stimulus enters an alert state.
 - Nearby zombies can notice that alert through designed signals such as
   vocalization, movement, direct observation, or other local stimuli.
-- Alerted neighbors receive a point or region to investigate, not perfect
-  knowledge of the player's current location.
-- Alert information weakens, becomes less precise, and/or expires as it
-  travels through multiple zombies.
+- Every eligible zombie in the local alert radius notices the carrier: it
+  first waits, then looks at its immediate alert leader without receiving the
+  leader's player target.
+- The configured probability controls only the later decision to walk behind
+  the leader. Independent player perception is unchanged, overrides the alert
+  response at any stage, and always produces normal pursuit.
 - Individual variation and path accessibility prevent every nearby zombie
   from moving as one synchronized unit.
 - Zombies have no permanent leader, formation, squad target, or global hive
   mind.
-- A chain reaction is possible when conditions support it, allowing one
-  incident to wake a larger area without guaranteeing that every zombie joins.
+- Active followers carry a short local alertness radius and can recruit
+  zombies they pass. Each candidate decides only once per episode, and
+  per-carrier and per-episode limits keep this gradual chain from becoming an
+  instantaneous guaranteed cascade.
 
 The detailed design must define alert states, signal types, transmission
 conditions, propagation limits, uncertainty, cooldowns, and anti-feedback
@@ -104,13 +127,23 @@ dangerous after losing direct sight.
 
 Required behavior:
 
-- Vision uses a real occlusion-aware line-of-sight test.
+- Initial vision originates at the zombie's head, respects its current facing
+  direction, and uses a real eye-to-eye occlusion ray through the world.
+  Light-transmitting blocks such as glass do not occlude that ray; opaque
+  blocks and doors do.
+- Detection probability decreases smoothly with distance inside a bounded
+  simulation radius instead of treating every visible player within range as
+  equally noticeable.
 - Detection distinguishes direct sight from hearing and secondhand alerts.
 - On seeing a player, a zombie records a last-known position, observation
   time, and any other information needed for believable pursuit.
 - Losing line of sight does not immediately cancel pursuit.
 - A zombie travels toward the last-known position, searches nearby, and can
   reacquire the target through new sight, sound, or alert evidence.
+- A zombie with a variation-driven block-breaking capability retains the
+  observed player's last-known position as a breach objective after LOS is
+  lost. It may continue excavating toward that fixed observation until it
+  detects another target or the remembered player dies or becomes invalid.
 - Search confidence decays. If no evidence is found, the zombie eventually
   leaves the search state rather than tracking the hidden player forever.
 - Navigation understands relevant obstacles and interactions, including
@@ -121,10 +154,32 @@ Required behavior:
 - Multiple zombies should navigate crowded spaces without requiring precise
   pack coordination.
 
-The intended architecture is a custom perception, memory, decision, and
-search layer above Minecraft's entity lifecycle and low-level navigation.
-Minecraft's `PathNavigate` and pathfinding should be retained initially and
-extended or selectively replaced only where measured behavior requires it.
+The intended architecture is a custom perception, memory, decision, search,
+and shared-navigation layer inside Minecraft's entity lifecycle. Direct player
+pursuit uses reusable reverse flow fields so zombies following the same target
+do not independently solve and maintain nearly identical routes.
+
+The first shared-navigation profile covers conservative ground movement and
+feeds adjacent waypoints to `EntityMoveHelper`. Vanilla pathfinding remains a
+budgeted fallback for incomplete fields and terrain semantics not yet modeled.
+Field expansion is incremental on the server thread, and completed fields stay
+active while moving targets request replacements.
+Each reached cell retains its lower-cost direction choices. Zombies reuse those
+choices with staggered far-distance waypoint refreshes instead of querying the
+walking surface every tick. The cached waypoint is reissued each tick because
+Minecraft 1.12.2 consumes a move-helper command once; close pursuit continues to
+select and issue a fresh direction every tick.
+
+The first ownership slice removes vanilla nearest-player selection. A
+staggered brain sensor now acquires attackable players through a configurable
+head-facing vision cone, an eye-to-eye block ray, and a distance-based chance
+that falls beyond a guaranteed near radius. The random roll applies only to
+initial awareness: an acquired player receives full pursuit commitment. A
+short sight-loss grace period precedes last-known-position behavior. The
+custom pursuit task executes shared-field movement and melee attacks for the
+selected target. The vanilla creature-home restriction is not used because it also
+gates target suitability; personal idle territory is enforced by custom
+wandering.
 
 The detailed design must define vision geometry, update frequency, memory
 decay, search patterns, obstacle costs, destructive interactions, crowd
@@ -177,6 +232,8 @@ The current leading architecture is hybrid:
 
 - **Zombie brain:** individual state, perception results, memories, current
   intent, and local decision making.
+- **Zombie audio controller:** converts brain state and horde membership into
+  player-facing ambient sound policy.
 - **Sound service:** accepts sound events and produces block-aware perceived
   stimuli under a controlled processing budget.
 - **Alert service:** handles local zombie-to-zombie alert signals without
